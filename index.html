@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スタートアップページ</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family, -apple-system), BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            transition: all 0.5s ease;
+            font-size: var(--font-size, 16px);
+        }
+
+        .background-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            z-index: -1;
+        }
+
+        .background-overlay.active {
+            opacity: 1;
+        }
+
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .top-controls {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 1rem;
+            z-index: 1000;
+        }
+
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .settings-btn:hover {
+            transform: rotate(90deg) scale(1.1);
+        }
+
+        .timer-btn.active {
+            background: rgba(255, 100, 100, 0.6);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 100, 100, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 100, 100, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 100, 100, 0); }
+        }
+
+        .clock-container {
+            text-align: center;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .time {
+            font-size: calc(var(--font-size, 16px) * 2.5);
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .date {
+            font-size: calc(var(--font-size, 16px) * 0.75);
+            opacity: 0.9;
+            text-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-container {
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 1.2rem 1.5rem;
+            padding-left: 3.5rem;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            font-size: calc(var(--font-size, 16px) * 0.69);
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-box:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1.2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 1.2rem;
+        }
+
+        .bookmarks-container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .bookmarks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .bookmark-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .bookmark-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .bookmark-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 0.8rem;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .bookmark-item:hover .bookmark-icon {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .bookmark-name {
+            font-size: 0.9rem;
+            text-align: center;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .add-bookmark {
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            background: transparent;
+        }
+
+        .add-bookmark:hover {
+            border-color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            color: white;
+            padding: 2rem;
+            transition: right 0.3s ease;
+            z-index: 1001;
+            overflow-y: auto;
+        }
+
+        .settings-panel.open {
+            right: 0;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .settings-section {
+            margin-bottom: 2rem;
+        }
+
+        .settings-section h3 {
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .background-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .bg-option {
+            width: 100%;
+            height: 80px;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .bg-option.active {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .bg-gradient1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .bg-gradient2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .bg-gradient3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .bg-gradient4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+            height: 80px;
+            border-radius: 10px;
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-input-wrapper:hover {
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .upload-text {
+            color: white;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .timer-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            color: white;
+            padding: 2rem;
+            transition: right 0.3s ease;
+            z-index: 1001;
+            overflow-y: auto;
+        }
+
+        .timer-panel.open {
+            right: 0;
+        }
+
+        .timer-display {
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .timer-time {
+            font-size: calc(var(--font-size, 16px) * 2.5);
+            font-weight: 300;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .timer-mode {
+            font-size: 1.2rem;
+            color: #ccc;
+            margin-bottom: 2rem;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .timer-btn-control {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .start-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .pause-btn {
+            background: #FF9800;
+            color: white;
+        }
+
+        .reset-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        .timer-btn-control:hover {
+            transform: translateY(-2px);
+        }
+
+        .timer-modes {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: transparent;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .mode-btn.active {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .timer-stats {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-top: 2rem;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .font-size-control {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .font-size-slider {
+            flex: 1;
+            height: 5px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .font-size-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        .font-family-select, .language-select, .region-select {
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            outline: none;
+            margin-bottom: 1rem;
+        }
+
+        .font-family-select option, .language-select option, .region-select option {
+            background: #333;
+            color: white;
+        }
+
+        .custom-timer-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .custom-timer-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .timer-input {
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            outline: none;
+            text-align: center;
+        }
+
+        .timer-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .add-custom-timer-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-custom-timer-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .custom-timer-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .delete-timer-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bookmark-form {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            padding: 2rem;
+            border-radius: 15px;
+            color: white;
+            z-index: 1002;
+            min-width: 300px;
+        }
+
+        .bookmark-form.show {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            outline: none;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .time {
+                font-size: 2.5rem;
+            }
+            
+            .settings-panel, .timer-panel {
+                width: 100%;
+                right: -100%;
+            }
+            
+            .bookmarks-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+
+            .timer-modes {
+                flex-direction: column;
+            }
+
+            .mode-btn {
+                flex: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-overlay" id="backgroundOverlay"></div>
+    
+    <div class="top-controls">
+        <button class="control-btn timer-btn" id="timerBtn" onclick="toggleTimer()">
+            <i class="fas fa-clock"></i>
+        </button>
+        <button class="control-btn settings-btn" onclick="toggleSettings()">
+            <i class="fas fa-cog"></i>
+        </button>
+    </div>
+
+    <div class="container">
+        <div class="clock-container">
+            <div class="time" id="time"></div>
+            <div class="date" id="date"></div>
+        </div>
+
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-box" placeholder="検索またはURLを入力..." onkeypress="handleSearch(event)">
+        </div>
+
+        <div class="bookmarks-container">
+            <div class="bookmarks-grid" id="bookmarksGrid">
+                <!-- Bookmarks will be added here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <h2 id="settingsTitle">設定</h2>
+            <button class="close-btn" onclick="toggleSettings()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="settings-section">
+            <h3 id="settingsBgTitle">背景</h3>
+            <div class="background-options">
+                <div class="bg-option bg-gradient1 active" onclick="changeBackground('gradient1')"></div>
+                <div class="bg-option bg-gradient2" onclick="changeBackground('gradient2')"></div>
+                <div class="bg-option bg-gradient3" onclick="changeBackground('gradient3')"></div>
+                <div class="bg-option bg-gradient4" onclick="changeBackground('gradient4')"></div>
+            </div>
+            <div style="margin-top: 1rem;">
+                <div class="file-input-wrapper" onclick="document.getElementById('customBg').click()">
+                    <input type="file" id="customBg" accept="image/*" onchange="handleCustomBackground(event)">
+                    <div class="upload-text">
+                        <i class="fas fa-upload"></i><br>
+                        <span id="uploadText">カスタム画像をアップロード</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h3 id="settingsFontTitle">フォント設定</h3>
+            <select class="font-family-select" id="fontFamily" onchange="changeFontFamily()">
+                <option value="-apple-system">システムフォント</option>
+                <option value="'Helvetica Neue', Helvetica">Helvetica</option>
+                <option value="'Times New Roman', Times">Times New Roman</option>
+                <option value="'Courier New', Courier">Courier New</option>
+                <option value="'Georgia', serif">Georgia</option>
+                <option value="'Verdana', sans-serif">Verdana</option>
+                <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
+                <option value="'Impact', fantasy">Impact</option>
+            </select>
+            <div class="font-size-control">
+                <span id="fontSizeLabel">フォントサイズ:</span>
+                <input type="range" class="font-size-slider" id="fontSizeSlider" min="12" max="24" value="16" onchange="changeFontSize()">
+                <span id="fontSizeValue">16px</span>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h3 id="settingsLangTitle">言語・地域設定</h3>
+            <select class="language-select" id="languageSelect" onchange="changeLanguage()">
+                <option value="ja">日本語</option>
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="de">Deutsch</option>
+                <option value="zh">中文</option>
+                <option value="ko">한국어</option>
+            </select>
+            <select class="region-select" id="regionSelect" onchange="changeRegion()">
+                <option value="JP">日本 (JP)</option>
+                <option value="US">United States (US)</option>
+                <option value="GB">United Kingdom (GB)</option>
+                <option value="CA">Canada (CA)</option>
+                <option value="AU">Australia (AU)</option>
+                <option value="DE">Germany (DE)</option>
+                <option value="FR">France (FR)</option>
+                <option value="ES">Spain (ES)</option>
+                <option value="IT">Italy (IT)</option>
+                <option value="BR">Brazil (BR)</option>
+                <option value="MX">Mexico (MX)</option>
+                <option value="KR">South Korea (KR)</option>
+                <option value="CN">China (CN)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="timer-panel" id="timerPanel">
+        <div class="settings-header">
+            <h2 id="timerTitle">ポモドーロタイマー</h2>
+            <button class="close-btn" onclick="toggleTimer()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="custom-timer-section">
+            <h4 id="customTimerTitle">カスタムタイマーを追加</h4>
+            <div class="custom-timer-inputs">
+                <input type="text" class="timer-input" id="customTimerName" placeholder="タイマー名">
+                <input type="number" class="timer-input" id="customTimerMinutes" placeholder="分" min="1" max="180">
+            </div>
+            <button class="add-custom-timer-btn" onclick="addCustomTimer()">
+                <i class="fas fa-plus"></i> <span id="addTimerBtnText">タイマーを追加</span>
+            </button>
+            <div id="customTimersList"></div>
+        </div>
+
+        <div class="timer-modes" id="timerModes">
+            <button class="mode-btn active" onclick="setTimerMode('pomodoro')" id="pomodoroBtn">作業 (25分)</button>
+            <button class="mode-btn" onclick="setTimerMode('shortBreak')" id="shortBreakBtn">休憩 (5分)</button>
+            <button class="mode-btn" onclick="setTimerMode('longBreak')" id="longBreakBtn">長休憩 (15分)</button>
+        </div>
+
+        <div class="timer-display">
+            <div class="timer-time" id="timerTime">25:00</div>
+            <div class="timer-mode" id="timerModeText">作業時間</div>
+        </div>
+
+        <div class="timer-controls">
+            <button class="timer-btn-control start-btn" id="startBtn" onclick="startTimer()">開始</button>
+            <button class="timer-btn-control pause-btn" id="pauseBtn" onclick="pauseTimer()" style="display: none;">一時停止</button>
+            <button class="timer-btn-control reset-btn" id="resetBtn" onclick="resetTimer()">リセット</button>
+        </div>
+
+        <div class="timer-stats">
+            <h4 id="statsTitle">今日の統計</h4>
+            <div class="stat-item">
+                <span id="completedPomodorosLabel">完了したポモドーロ:</span>
+                <span id="completedPomodoros">0</span>
+            </div>
+            <div class="stat-item">
+                <span id="totalWorkTimeLabel">作業時間:</span>
+                <span id="totalWorkTime">0分</span>
+            </div>
+            <div class="stat-item">
+                <span id="totalBreakTimeLabel">休憩時間:</span>
+                <span id="totalBreakTime">0分</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="bookmark-form" id="bookmarkForm">
+        <h3 id="addBookmarkTitle">新しいブックマークを追加</h3>
+        <div class="form-group">
+            <label id="siteNameLabel">サイト名</label>
+            <input type="text" id="bookmarkName" placeholder="例: Google">
+        </div>
+        <div class="form-group">
+            <label>URL</label>
+            <input type="url" id="bookmarkUrl" placeholder="例: https://google.com">
+        </div>
+        <div class="form-group">
+            <label id="iconLabel">アイコン (Font Awesome クラス)</label>
+            <input type="text" id="bookmarkIcon" placeholder="例: fab fa-google">
+        </div>
+        <div class="form-buttons">
+            <button class="btn btn-secondary" id="cancelBtn" onclick="closeBookmarkForm()">キャンセル</button>
+            <button class="btn btn-primary" id="addBtn" onclick="addBookmark()">追加</button>
+        </div>
+    </div>
+
+    <script>
+        // Timer variables
+        let timerInterval = null;
+        let currentTime = 25 * 60; // 25 minutes in seconds
+        let isRunning = false;
+        let currentMode = 'pomodoro';
+        let customTimers = [];
+        let currentLanguage = 'ja';
+        let currentRegion = 'JP';
+        let stats = {
+            completedPomodoros: 0,
+            totalWorkTime: 0,
+            totalBreakTime: 0
+        };
+
+        const timerModes = {
+            pomodoro: { time: 25 * 60, label: '作業時間' },
+            shortBreak: { time: 5 * 60, label: '短い休憩' },
+            longBreak: { time: 15 * 60, label: '長い休憩' }
+        };
+
+        // Language translations
+        const translations = {
+            ja: {
+                settings: '設定',
+                pomodoroTimer: 'ポモドーロタイマー',
+                background: '背景',
+                uploadCustomImage: 'カスタム画像をアップロード',
+                fontSettings: 'フォント設定',
+                fontSize: 'フォントサイズ:',
+                languageRegion: '言語・地域設定',
+                customTimerAdd: 'カスタムタイマーを追加',
+                timerName: 'タイマー名',
+                minutes: '分',
+                addTimer: 'タイマーを追加',
+                work: '作業',
+                shortBreak: '休憩',
+                longBreak: '長休憩',
+                workTime: '作業時間',
+                shortBreakTime: '短い休憩',
+                longBreakTime: '長い休憩',
+                start: '開始',
+                pause: '一時停止',
+                reset: 'リセット',
+                todayStats: '今日の統計',
+                completedPomodoros: '完了したポモドーロ:',
+                totalWorkTime: '作業時間:',
+                totalBreakTime: '休憩時間:',
+                addNewBookmark: '新しいブックマークを追加',
+                siteName: 'サイト名',
+                icon: 'アイコン (Font Awesome クラス)',
+                cancel: 'キャンセル',
+                add: '追加',
+                searchPlaceholder: '検索またはURLを入力...',
+                timerCompleteBody: 'が終了しました。'
+            },
+            en: {
+                settings: 'Settings',
+                pomodoroTimer: 'Pomodoro Timer',
+                background: 'Background',
+                uploadCustomImage: 'Upload Custom Image',
+                fontSettings: 'Font Settings',
+                fontSize: 'Font Size:',
+                languageRegion: 'Language & Region',
+                customTimerAdd: 'Add Custom Timer',
+                timerName: 'Timer Name',
+                minutes: 'Minutes',
+                addTimer: 'Add Timer',
+                work: 'Work',
+                shortBreak: 'Short Break',
+                longBreak: 'Long Break',
+                workTime: 'Work Time',
+                shortBreakTime: 'Short Break',
+                longBreakTime: 'Long Break',
+                start: 'Start',
+                pause: 'Pause',
+                reset: 'Reset',
+                todayStats: 'Today\'s Stats',
+                completedPomodoros: 'Completed Pomodoros:',
+                totalWorkTime: 'Work Time:',
+                totalBreakTime: 'Break Time:',
+                addNewBookmark: 'Add New Bookmark',
+                siteName: 'Site Name',
+                icon: 'Icon (Font Awesome class)',
+                cancel: 'Cancel',
+                add: 'Add',
+                searchPlaceholder: 'Search or enter URL...',
+                timerComplete: 'Timer Complete!',
+                timerCompleteBody: ' has finished.'
+            },
+            es: {
+                settings: 'Configuración',
+                pomodoroTimer: 'Temporizador Pomodoro',
+                background: 'Fondo',
+                uploadCustomImage: 'Subir Imagen Personalizada',
+                fontSettings: 'Configuración de Fuente',
+                fontSize: 'Tamaño de Fuente:',
+                languageRegion: 'Idioma y Región',
+                customTimerAdd: 'Agregar Temporizador Personalizado',
+                timerName: 'Nombre del Temporizador',
+                minutes: 'Minutos',
+                addTimer: 'Agregar Temporizador',
+                work: 'Trabajo',
+                shortBreak: 'Descanso Corto',
+                longBreak: 'Descanso Largo',
+                workTime: 'Tiempo de Trabajo',
+                shortBreakTime: 'Descanso Corto',
+                longBreakTime: 'Descanso Largo',
+                start: 'Iniciar',
+                pause: 'Pausar',
+                reset: 'Reiniciar',
+                todayStats: 'Estadísticas de Hoy',
+                completedPomodoros: 'Pomodoros Completados:',
+                totalWorkTime: 'Tiempo de Trabajo:',
+                totalBreakTime: 'Tiempo de Descanso:',
+                addNewBookmark: 'Agregar Nuevo Marcador',
+                siteName: 'Nombre del Sitio',
+                icon: 'Icono (clase Font Awesome)',
+                cancel: 'Cancelar',
+                add: 'Agregar',
+                searchPlaceholder: 'Buscar o ingresar URL...',
+                timerComplete: '¡Temporizador Completado!',
+                timerCompleteBody: ' ha terminado.'
+            }
+        };
+
+        // Default bookmarks
+        let bookmarks = [
+            { name: 'Google', url: 'https://google.com', icon: 'fab fa-google' },
+            { name: 'YouTube', url: 'https://youtube.com', icon: 'fab fa-youtube' },
+            { name: 'Twitter', url: 'https://twitter.com', icon: 'fab fa-twitter' },
+            { name: 'GitHub', url: 'https://github.com', icon: 'fab fa-github' }
+        ];
+
+        // Background gradients
+        const backgrounds = {
+            gradient1: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            gradient2: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            gradient3: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+            gradient4: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
+        };
+
+        // Initialize the page
+        function init() {
+            updateClock();
+            setInterval(updateClock, 1000);
+            renderBookmarks();
+            
+            // Load saved settings
+            const savedBg = localStorage.getItem('background') || 'gradient1';
+            if (savedBg === 'custom') {
+                const customBg = localStorage.getItem('customBackground');
+                if (customBg) {
+                    document.body.style.background = '#000';
+                    document.getElementById('backgroundOverlay').style.backgroundImage = `url(${customBg})`;
+                    document.getElementById('backgroundOverlay').classList.add('active');
+                } else {
+                    changeBackground('gradient1');
+                }
+            } else {
+                changeBackground(savedBg);
+            }
+            
+            const savedBookmarks = localStorage.getItem('bookmarks');
+            if (savedBookmarks) {
+                bookmarks = JSON.parse(savedBookmarks);
+                renderBookmarks();
+            }
+
+            // Load timer stats
+            const savedStats = localStorage.getItem('timerStats');
+            if (savedStats) {
+                stats = JSON.parse(savedStats);
+                updateStatsDisplay();
+            }
+
+            // Load custom timers
+            const savedCustomTimers = localStorage.getItem('customTimers');
+            if (savedCustomTimers) {
+                customTimers = JSON.parse(savedCustomTimers);
+                renderCustomTimers();
+                renderTimerModes();
+            }
+
+            // Load font settings
+            const savedFontFamily = localStorage.getItem('fontFamily');
+            const savedFontSize = localStorage.getItem('fontSize');
+            if (savedFontFamily) {
+                document.getElementById('fontFamily').value = savedFontFamily;
+                changeFontFamily();
+            }
+            if (savedFontSize) {
+                document.getElementById('fontSizeSlider').value = savedFontSize;
+                document.getElementById('fontSizeValue').textContent = savedFontSize + 'px';
+                changeFontSize();
+            }
+
+            // Load language settings
+            const savedLanguage = localStorage.getItem('language');
+            const savedRegion = localStorage.getItem('region');
+            if (savedLanguage) {
+                currentLanguage = savedLanguage;
+                document.getElementById('languageSelect').value = savedLanguage;
+                updateLanguage();
+            }
+            if (savedRegion) {
+                currentRegion = savedRegion;
+                document.getElementById('regionSelect').value = savedRegion;
+            }
+        }
+
+        // Update clock
+        function updateClock() {
+            const now = new Date();
+            const options = {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            
+            const dateOptions = {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            };
+
+            let locale = 'ja-JP';
+            if (currentLanguage === 'en') locale = currentRegion === 'US' ? 'en-US' : 'en-GB';
+            else if (currentLanguage === 'es') locale = 'es-ES';
+            else if (currentLanguage === 'fr') locale = 'fr-FR';
+            else if (currentLanguage === 'de') locale = 'de-DE';
+            else if (currentLanguage === 'zh') locale = 'zh-CN';
+            else if (currentLanguage === 'ko') locale = 'ko-KR';
+
+            const timeString = now.toLocaleTimeString(locale, options);
+            const dateString = now.toLocaleDateString(locale, dateOptions);
+            
+            document.getElementById('time').textContent = timeString;
+            document.getElementById('date').textContent = dateString;
+        }
+
+        // Handle search
+        function handleSearch(event) {
+            if (event.key === 'Enter') {
+                const query = event.target.value.trim();
+                if (query) {
+                    if (query.includes('.') && !query.includes(' ')) {
+                        // Looks like a URL
+                        window.open(query.startsWith('http') ? query : 'https://' + query, '_blank');
+                    } else {
+                        // Search query
+                        window.open('https://www.google.com/search?q=' + encodeURIComponent(query), '_blank');
+                    }
+                    event.target.value = '';
+                }
+            }
+        }
+
+        // Font settings functions
+        function changeFontFamily() {
+            const fontFamily = document.getElementById('fontFamily').value;
+            document.documentElement.style.setProperty('--font-family', fontFamily);
+            localStorage.setItem('fontFamily', fontFamily);
+        }
+
+        function changeFontSize() {
+            const fontSize = document.getElementById('fontSizeSlider').value;
+            document.getElementById('fontSizeValue').textContent = fontSize + 'px';
+            document.documentElement.style.setProperty('--font-size', fontSize + 'px');
+            localStorage.setItem('fontSize', fontSize);
+        }
+
+        // Language functions
+        function changeLanguage() {
+            currentLanguage = document.getElementById('languageSelect').value;
+            localStorage.setItem('language', currentLanguage);
+            updateLanguage();
+        }
+
+        function changeRegion() {
+            currentRegion = document.getElementById('regionSelect').value;
+            localStorage.setItem('region', currentRegion);
+        }
+
+        function updateLanguage() {
+            const t = translations[currentLanguage] || translations.ja;
+            
+            // Update settings panel
+            document.getElementById('settingsTitle').textContent = t.settings;
+            document.getElementById('settingsBgTitle').textContent = t.background;
+            document.getElementById('uploadText').textContent = t.uploadCustomImage;
+            document.getElementById('settingsFontTitle').textContent = t.fontSettings;
+            document.getElementById('fontSizeLabel').textContent = t.fontSize;
+            document.getElementById('settingsLangTitle').textContent = t.languageRegion;
+            
+            // Update timer panel
+            document.getElementById('timerTitle').textContent = t.pomodoroTimer;
+            document.getElementById('customTimerTitle').textContent = t.customTimerAdd;
+            document.getElementById('addTimerBtnText').textContent = t.addTimer;
+            document.getElementById('pomodoroBtn').textContent = `${t.work} (25${t.minutes === 'Minutes' ? 'min' : '分'})`;
+            document.getElementById('shortBreakBtn').textContent = `${t.shortBreak} (5${t.minutes === 'Minutes' ? 'min' : '分'})`;
+            document.getElementById('longBreakBtn').textContent = `${t.longBreak} (15${t.minutes === 'Minutes' ? 'min' : '分'})`;
+            document.getElementById('startBtn').textContent = t.start;
+            document.getElementById('pauseBtn').textContent = t.pause;
+            document.getElementById('resetBtn').textContent = t.reset;
+            document.getElementById('statsTitle').textContent = t.todayStats;
+            document.getElementById('completedPomodorosLabel').textContent = t.completedPomodoros;
+            document.getElementById('totalWorkTimeLabel').textContent = t.totalWorkTime;
+            document.getElementById('totalBreakTimeLabel').textContent = t.totalBreakTime;
+            
+            // Update timer mode labels
+            timerModes.pomodoro.label = t.workTime;
+            timerModes.shortBreak.label = t.shortBreakTime;
+            timerModes.longBreak.label = t.longBreakTime;
+            
+            // Update bookmark form
+            document.getElementById('addBookmarkTitle').textContent = t.addNewBookmark;
+            document.getElementById('siteNameLabel').textContent = t.siteName;
+            document.getElementById('iconLabel').textContent = t.icon;
+            document.getElementById('cancelBtn').textContent = t.cancel;
+            document.getElementById('addBtn').textContent = t.add;
+            
+            // Update search placeholder
+            document.querySelector('.search-box').placeholder = t.searchPlaceholder;
+            
+            // Update placeholders
+            document.getElementById('customTimerName').placeholder = t.timerName;
+            document.getElementById('customTimerMinutes').placeholder = t.minutes;
+            
+            updateTimerDisplay();
+        }
+
+        // Toggle settings panel
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            panel.classList.toggle('open');
+        }
+
+        // Change background
+        function changeBackground(bgType) {
+            if (bgType === 'custom') {
+                return; // Custom backgrounds are handled separately
+            }
+            
+            document.body.style.background = backgrounds[bgType];
+            document.getElementById('backgroundOverlay').style.backgroundImage = 'none';
+            
+            // Update active state
+            document.querySelectorAll('.bg-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            if (bgType !== 'custom') {
+                document.querySelector('.bg-' + bgType).classList.add('active');
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('background', bgType);
+        }
+
+        // Handle custom background upload
+        function handleCustomBackground(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageUrl = e.target.result;
+                    document.body.style.background = '#000';
+                    document.getElementById('backgroundOverlay').style.backgroundImage = `url(${imageUrl})`;
+                    document.getElementById('backgroundOverlay').classList.add('active');
+                    
+                    // Remove active state from gradient options
+                    document.querySelectorAll('.bg-option').forEach(option => {
+                        option.classList.remove('active');
+                    });
+                    
+                    // Save to localStorage
+                    localStorage.setItem('background', 'custom');
+                    localStorage.setItem('customBackground', imageUrl);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Render bookmarks
+        function renderBookmarks() {
+            const grid = document.getElementById('bookmarksGrid');
+            grid.innerHTML = '';
+            
+            bookmarks.forEach((bookmark, index) => {
+                const bookmarkEl = document.createElement('a');
+                bookmarkEl.className = 'bookmark-item';
+                bookmarkEl.href = bookmark.url;
+                bookmarkEl.target = '_blank';
+                bookmarkEl.innerHTML = `
+                    <div class="bookmark-icon">
+                        <i class="${bookmark.icon}"></i>
+                    </div>
+                    <div class="bookmark-name">${bookmark.name}</div>
+                `;
+                
+                // Add right-click context menu for deletion
+                bookmarkEl.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    if (confirm('このブックマークを削除しますか？')) {
+                        deleteBookmark(index);
+                    }
+                });
+                
+                grid.appendChild(bookmarkEl);
+            });
+            
+            // Add "Add bookmark" button
+            const addBtn = document.createElement('div');
+            addBtn.className = 'bookmark-item add-bookmark';
+            addBtn.onclick = showBookmarkForm;
+            addBtn.innerHTML = `
+                <div class="bookmark-icon">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="bookmark-name">${translations[currentLanguage]?.add || '追加'}</div>
+            `;
+            grid.appendChild(addBtn);
+        }
+
+        // Show bookmark form
+        function showBookmarkForm() {
+            document.getElementById('bookmarkForm').classList.add('show');
+        }
+
+        // Close bookmark form
+        function closeBookmarkForm() {
+            document.getElementById('bookmarkForm').classList.remove('show');
+            // Reset form
+            document.getElementById('bookmarkName').value = '';
+            document.getElementById('bookmarkUrl').value = '';
+            document.getElementById('bookmarkIcon').value = '';
+        }
+
+        // Add bookmark
+        function addBookmark() {
+            const name = document.getElementById('bookmarkName').value.trim();
+            const url = document.getElementById('bookmarkUrl').value.trim();
+            const icon = document.getElementById('bookmarkIcon').value.trim() || 'fas fa-globe';
+            
+            if (name && url) {
+                bookmarks.push({ name, url, icon });
+                localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+                renderBookmarks();
+                closeBookmarkForm();
+            }
+        }
+
+        // Delete bookmark
+        function deleteBookmark(index) {
+            bookmarks.splice(index, 1);
+            localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+            renderBookmarks();
+        }
+
+        // Timer functions
+        function toggleTimer() {
+            const panel = document.getElementById('timerPanel');
+            panel.classList.toggle('open');
+        }
+
+        function addCustomTimer() {
+            const name = document.getElementById('customTimerName').value.trim();
+            const minutes = parseInt(document.getElementById('customTimerMinutes').value);
+            
+            if (name && minutes && minutes > 0 && minutes <= 180) {
+                const customTimer = {
+                    id: 'custom_' + Date.now(),
+                    name: name,
+                    time: minutes * 60,
+                    label: name
+                };
+                
+                customTimers.push(customTimer);
+                timerModes[customTimer.id] = customTimer;
+                
+                localStorage.setItem('customTimers', JSON.stringify(customTimers));
+                
+                renderCustomTimers();
+                renderTimerModes();
+                
+                // Clear inputs
+                document.getElementById('customTimerName').value = '';
+                document.getElementById('customTimerMinutes').value = '';
+            }
+        }
+
+        function deleteCustomTimer(timerId) {
+            customTimers = customTimers.filter(timer => timer.id !== timerId);
+            delete timerModes[timerId];
+            
+            localStorage.setItem('customTimers', JSON.stringify(customTimers));
+            
+            renderCustomTimers();
+            renderTimerModes();
+            
+            // If current mode is the deleted timer, switch to pomodoro
+            if (currentMode === timerId) {
+                setTimerMode('pomodoro');
+            }
+        }
+
+        function renderCustomTimers() {
+            const container = document.getElementById('customTimersList');
+            container.innerHTML = '';
+            
+            customTimers.forEach(timer => {
+                const timerEl = document.createElement('div');
+                timerEl.className = 'custom-timer-item';
+                timerEl.innerHTML = `
+                    <span>${timer.name} (${Math.floor(timer.time / 60)}分)</span>
+                    <button class="delete-timer-btn" onclick="deleteCustomTimer('${timer.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                container.appendChild(timerEl);
+            });
+        }
+
+        function renderTimerModes() {
+            const container = document.getElementById('timerModes');
+            container.innerHTML = `
+                <button class="mode-btn ${currentMode === 'pomodoro' ? 'active' : ''}" onclick="setTimerMode('pomodoro')" id="pomodoroBtn">作業 (25分)</button>
+                <button class="mode-btn ${currentMode === 'shortBreak' ? 'active' : ''}" onclick="setTimerMode('shortBreak')" id="shortBreakBtn">休憩 (5分)</button>
+                <button class="mode-btn ${currentMode === 'longBreak' ? 'active' : ''}" onclick="setTimerMode('longBreak')" id="longBreakBtn">長休憩 (15分)</button>
+            `;
+            
+            customTimers.forEach(timer => {
+                const btn = document.createElement('button');
+                btn.className = `mode-btn ${currentMode === timer.id ? 'active' : ''}`;
+                btn.onclick = () => setTimerMode(timer.id);
+                btn.textContent = `${timer.name} (${Math.floor(timer.time / 60)}分)`;
+                container.appendChild(btn);
+            });
+            
+            // Update language after rendering
+            if (currentLanguage !== 'ja') {
+                updateLanguage();
+            }
+        }
+
+        function setTimerMode(mode) {
+            if (isRunning) return;
+            
+            currentMode = mode;
+            currentTime = timerModes[mode].time;
+            
+            // Update UI
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Find and activate the correct button
+            if (mode === 'pomodoro') {
+                document.getElementById('pomodoroBtn').classList.add('active');
+            } else if (mode === 'shortBreak') {
+                document.getElementById('shortBreakBtn').classList.add('active');
+            } else if (mode === 'longBreak') {
+                document.getElementById('longBreakBtn').classList.add('active');
+            } else {
+                // Custom timer
+                const buttons = document.querySelectorAll('.mode-btn');
+                buttons.forEach(btn => {
+                    if (btn.textContent.includes(timerModes[mode].name)) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+            
+            updateTimerDisplay();
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        function updateTimerDisplay() {
+            document.getElementById('timerTime').textContent = formatTime(currentTime);
+            document.getElementById('timerModeText').textContent = timerModes[currentMode].label;
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('pauseBtn').style.display = 'inline-block';
+            document.getElementById('timerBtn').classList.add('active');
+            
+            timerInterval = setInterval(() => {
+                currentTime--;
+                updateTimerDisplay();
+                
+                if (currentTime <= 0) {
+                    completeTimer();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            if (!isRunning) return;
+            
+            isRunning = false;
+            clearInterval(timerInterval);
+            document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('pauseBtn').style.display = 'none';
+            document.getElementById('timerBtn').classList.remove('active');
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            currentTime = timerModes[currentMode].time;
+            updateTimerDisplay();
+        }
+
+        function completeTimer() {
+            pauseTimer();
+            
+            const t = translations[currentLanguage] || translations.ja;
+            
+            // Update stats
+            if (currentMode === 'pomodoro') {
+                stats.completedPomodoros++;
+                stats.totalWorkTime += 25;
+            } else if (currentMode === 'shortBreak') {
+                stats.totalBreakTime += 5;
+            } else if (currentMode === 'longBreak') {
+                stats.totalBreakTime += 15;
+            } else {
+                // Custom timer
+                const customTimer = customTimers.find(timer => timer.id === currentMode);
+                if (customTimer) {
+                    stats.totalWorkTime += Math.floor(customTimer.time / 60);
+                }
+            }
+            
+            updateStatsDisplay();
+            localStorage.setItem('timerStats', JSON.stringify(stats));
+            
+            // Show notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(t.timerComplete, {
+                    body: `${timerModes[currentMode].label}${t.timerCompleteBody}`,
+                    icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptLTIgMTVsLTUtNSAxLjQxLTEuNDFMMTAgMTQuMTdsNy41OS03LjU5TDE5IDhsLTkgOXoiLz48L3N2Zz4='
+                });
+            }
+            
+            // Auto-switch to break mode after pomodoro
+            if (currentMode === 'pomodoro') {
+                const breakMode = stats.completedPomodoros % 4 === 0 ? 'longBreak' : 'shortBreak';
+                setTimeout(() => {
+                    setTimerMode(breakMode);
+                }, 1000);
+            }
+        }
+
+        function updateStatsDisplay() {
+            const t = translations[currentLanguage] || translations.ja;
+            const minutesUnit = currentLanguage === 'en' ? 'min' : '分';
+            
+            document.getElementById('completedPomodoros').textContent = stats.completedPomodoros;
+            document.getElementById('totalWorkTime').textContent = stats.totalWorkTime + minutesUnit;
+            document.getElementById('totalBreakTime').textContent = Math.round(stats.totalBreakTime) + minutesUnit;
+        }
+
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // Initialize when page loads
+        init();
+    </script>
+</body>
+</html>: 'タイマー完了！',
+                timerComplete
